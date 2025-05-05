@@ -1,5 +1,6 @@
 const InputField = ({
     onChange,
+    onKeyDown,
     name,
     classNames = "",
     type = "text",
@@ -43,6 +44,7 @@ const InputField = ({
             className={inputClasses}
             required={isRequired}
             onChange={onChange}
+            onKeyDown={onKeyDown}
             rows={as === "textarea" ? 3 : undefined}
           />
           {icon && <div className="absolute right-3 top-3.5 text-gray-400">{icon}</div>}

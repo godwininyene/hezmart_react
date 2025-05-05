@@ -21,12 +21,13 @@ import ResetPassword from './pages/auth/ResetPassword';
 //Admin Pages
 import AdminDashboard from './pages/admin/Dashboard'
 import ShopManager from './pages/admin/ShopManager';
+import AdminManageProducts from './pages/admin/AdminManageProducts';
 
 
 //Vendor pages
 import PendingVerification from './pages/vendor/PendingVerification';
 import VendorDashboard from './pages/vendor/Dashboard'
-import VendorProducts from './pages/vendor/ManageProducts'
+import VendorManageProducts from './pages/vendor/VendorManageProducts'
 import AddProduct from './pages/vendor/AddProduct';
 
 
@@ -34,6 +35,7 @@ import AddProduct from './pages/vendor/AddProduct';
 import NotFound from './pages/NotFound';
 import Error from './components/Error';
 import { requireAuth } from './utils/protect';
+
 
 
 
@@ -61,12 +63,13 @@ function App() {
         <Route path='admin' loader={async({ request }) => await requireAuth(request, 'admin')}>
           <Route path='dashboard' element={<AdminDashboard />} />
           <Route path='vendors' element={<ShopManager />} />
+          <Route path='products' element={<AdminManageProducts />} />
         </Route>
 
         {/* Vendor Routes */}
         <Route path='vendor' loader={({ request }) => requireAuth(request, 'vendor')}>
           <Route path='dashboard' element={<VendorDashboard />} />
-          <Route path='products' element={<VendorProducts />} />
+          <Route path='products' element={<VendorManageProducts />} />
           <Route path='add-product' element={<AddProduct />} ></Route>
         </Route>
        
