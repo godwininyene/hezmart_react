@@ -66,10 +66,10 @@ const AdminManageProducts = () => {
         }
     };
 
-    const toggleStatus = async (productId, currentStatus) => {
+    const toggleStatus = async (productId, newStatus) => {
         try {
-            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-            const res = await axios.patch(`api/v1/admin/products/${productId}/status`, { status: newStatus });
+           
+            const res = await axios.patch(`api/v1/products/${productId}/status`, { status: newStatus });
             if (res.data.status === 'success') {
                 toast.success(`Product marked as ${newStatus}`);
                 fetchProducts(pagination.currentPage, searchTerm, statusFilter === 'all' ? '' : statusFilter);
