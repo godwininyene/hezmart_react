@@ -30,11 +30,15 @@ import VendorDashboard from './pages/vendor/Dashboard'
 import VendorManageProducts from './pages/vendor/VendorManageProducts'
 import AddProduct from './pages/vendor/AddProduct';
 
+//Product Pages;
+import ProductDetails from './pages/product/ProductDetails';
+
 
 //Others
 import NotFound from './pages/NotFound';
 import Error from './components/Error';
 import { requireAuth } from './utils/protect';
+
 
 
 
@@ -47,14 +51,17 @@ function App() {
 
       <Route path='/' element={<BaseLayout />} errorElement={<Error />}>
         <Route index element={<Home />}></Route>
+        {/* Auth routes */}
         <Route path='sell-on-hezmart' element={<SellOnHezmart />}></Route>
         <Route path='vendor-register' element={<VendorRegister />}></Route>
         <Route path='customer-register' element={<CustomerRegister />}></Route>
         <Route path='confirm-email' element={<ConfirmEmail />}></Route>
-
         <Route path='login' element={<Login />}></Route>
         <Route path='forgot-password' element={<ForgotPassword />}></Route>
         <Route path='resetPassword' element={<ResetPassword />}></Route>
+
+        {/* Product Routes */}
+        <Route path='/product/:id' element={<ProductDetails />}></Route>
        
       </Route>
 

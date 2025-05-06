@@ -52,6 +52,7 @@ const ProductsTable = ({
     const allActions = {
       active: [{ label: "Suspend Product", value: "suspend" }],
       denied: [{ label: "Activate Product", value: "approve" }],
+      suspended: [{ label: "Activate Product", value: "approve" }],
       pending: [
         { label: "Approve (Active)", value: "approve" },
         { label: "Reject (Denied)", value: "reject" }
@@ -194,7 +195,7 @@ const ProductsTable = ({
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
                       <div className="flex justify-end items-center space-x-2">
                         <Link
-                          to={`/product/${product.slug}`}
+                          to={`/product/${product.id}`}
                           target="_blank"
                           className="text-blue-600 hover:text-blue-900 p-1"
                           title="View"

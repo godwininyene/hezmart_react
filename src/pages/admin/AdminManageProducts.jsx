@@ -16,8 +16,8 @@ const AdminManageProducts = () => {
         { value: "all", label: "All Statuses" },
         { value: "pending", label: "Pending" },
         { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
-        { value: "draft", label: "Draft" }
+        { value: "denied", label: "Denied" },
+        { value: "suspended", label: "Suspended" }
     ];
     
 
