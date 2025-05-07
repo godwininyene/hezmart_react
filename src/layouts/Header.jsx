@@ -1,7 +1,9 @@
 import { FaBell, FaSearch, FaShoppingCart, FaUserCircle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { useCart } from '../components/contexts/CartContext';
 
 const Header = ({ user, toggle, setToggle }) => {
+  const { cartCount } = useCart();
   return (
     <header className="fixed top-0 right-0 left-0 md:left-56 bg-white shadow-sm z-10 h-16 flex items-center px-4">
       <div className="flex items-center justify-between w-full">

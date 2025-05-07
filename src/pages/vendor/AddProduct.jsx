@@ -238,7 +238,7 @@ const AddProduct = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold text-gray-800">Add New Product</h1>
-        <Link to="/manage-products">
+        <Link to="/manage/vendor/products">
           <button className="text-primary-dark font-medium">Back</button>
         </Link>
       </div>
@@ -315,8 +315,8 @@ const AddProduct = () => {
             {/* Cover Image */}
             <div>
               <label className="block text-md text-[#5A607F] mb-2">Cover Image</label>
-              {coverImagePreview ? (
-                <div className="relative">
+              {coverImagePreview && (
+                <div className="relative mb-2">
                   <img 
                     src={coverImagePreview} 
                     alt="Cover preview" 
@@ -330,7 +330,7 @@ const AddProduct = () => {
                     ×
                   </button>
                 </div>
-              ) : (
+              ) }
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                   <input 
                     type="file" 
@@ -352,7 +352,7 @@ const AddProduct = () => {
                     <p className="mt-1 text-sm text-red-500">{errors.coverImage}</p>
                   )}
                 </div>
-              )}
+              
             </div>
 
             {/* Additional Images */}

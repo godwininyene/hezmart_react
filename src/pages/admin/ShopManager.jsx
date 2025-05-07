@@ -5,6 +5,7 @@ import axios from '../../lib/axios';
 import { toast } from 'react-toastify';
 import Pagination from '../../components/common/Pagination';
 import usePagination from '../../hooks/usePagination';
+import DataTableFilters from '../../components/common/DataTableFilters';
 
 const ShopManager = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -12,6 +13,7 @@ const ShopManager = () => {
   const [loading, setLoading] = useState(true);
   const [shops, setShops] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState("all");
   const [statusUpdating, setStatusUpdating] = useState(null);
   const [statusError, setStatusError] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
@@ -68,11 +70,7 @@ const ShopManager = () => {
     fetchVendors(page, searchQuery, activeTab === 'all' ? '' : activeTab);
   };
 
-  // Handle tab change
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    fetchVendors(1, searchQuery, tab === 'all' ? '' : tab);
-  };
+
 
   // Update vendor status
   const updateStatus = async (vendorId, newStatus) => {
@@ -80,11 +78,30 @@ const ShopManager = () => {
     setStatusError(null);
     
     try {
-      const res = await axios.patch(`api/v1/users/${vendorId}/status`, { status: newStatus });
+      // Map the action values to actual status values
+      const statusMap = {
+        'approve': 'active',
+        'deny': 'denied',
+        'pending': 'pending',
+        'deactivate': 'deactivated'
+      };
+      
+      const actualStatus = statusMap[newStatus] || newStatus;
+      
+      const res = await axios.patch(`api/v1/users/${vendorId}/status`, { 
+        status: actualStatus 
+      });
       
       if (res.data.status === 'success') {
         toast.success(`Status updated successfully`);
-        fetchVendors(pagination.currentPage, searchQuery, activeTab === 'all' ? '' : activeTab);
+        // Update local state immediately for better UX
+        setShops(prevShops => 
+          prevShops.map(shop => 
+            shop.id === vendorId 
+              ? { ...shop, status: actualStatus } 
+              : shop
+          )
+        );
       } else {
         toast.warning(res.data.message || 'Status updated with warning');
       }
@@ -159,6 +176,19 @@ const ShopManager = () => {
     return allActions[currentStatus] || [];
   };
 
+  const statusFilterOptions = [
+    { value: "all", label: "All Statuses" },
+    { value: "pending", label: "Pending" },
+    { value: "active", label: "Active" },
+    { value: "denied", label: "Denied" },
+    { value: "deactivated", label: "Deactivated" }
+  ];
+
+  const handleStatusChange = (status) => {
+    setStatusFilter(status);
+    fetchVendors(1, searchQuery, status === 'all' ? '' : status);
+  };
+
   const toggleDropdown = (shopId) => {
     setActiveDropdown(activeDropdown === shopId ? null : shopId);
   };
@@ -166,18 +196,24 @@ const ShopManager = () => {
   return (
     <div className="">
       {/* Header and Search */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-gray-800">Shop Manager</h1>
-        <form onSubmit={handleSearch} className="relative w-full md:w-64">
-          <FaSearch className="absolute left-3 top-3 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search shops..."
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </form>
+      <div className="">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Shop Manager</h1>
+
+        <DataTableFilters
+          searchTerm={searchQuery}
+          onSearchChange={(e) => setSearchQuery(e.target.value)}
+          onSearchSubmit={handleSearch}
+          filters={[
+            {
+              type: 'select',
+              value: statusFilter,
+              onChange: (e) => handleStatusChange(e.target.value),
+              options: statusFilterOptions
+            }
+          ]}
+          totalItems={pagination.totalItems}
+          searchPlaceholder="Search vendors..."
+        />
       </div>
 
       {/* Status error message */}
@@ -187,22 +223,7 @@ const ShopManager = () => {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-6">
-        <button 
-          className={`px-4 py-2 font-medium ${activeTab === 'all' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-          onClick={() => handleTabChange('all')}
-        >
-          All Shops
-        </button>
-        <button 
-          className={`px-4 py-2 font-medium ${activeTab === 'pending' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-          onClick={() => handleTabChange('pending')}
-        >
-          Pending Applications
-        </button>
-      </div>
-
+  
       {/* Loading state */}
       {loading && (
         <div className="flex justify-center items-center h-64">

@@ -1,4 +1,5 @@
 import {createBrowserRouter, createRoutesFromElements, RouterProvider ,Route} from 'react-router-dom';
+import { CartProvider } from './components/contexts/CartContext';
 
 //Pages
 import Home from './pages/Home';
@@ -38,6 +39,7 @@ import ProductDetails from './pages/product/ProductDetails';
 import NotFound from './pages/NotFound';
 import Error from './components/Error';
 import { requireAuth } from './utils/protect';
+import Cart from './pages/Cart';
 
 
 
@@ -47,6 +49,7 @@ function App() {
 
 
   const router = createBrowserRouter(createRoutesFromElements(
+    
     <>
 
       <Route path='/' element={<BaseLayout />} errorElement={<Error />}>
@@ -62,6 +65,7 @@ function App() {
 
         {/* Product Routes */}
         <Route path='/product/:id' element={<ProductDetails />}></Route>
+        <Route path='cart' element={<Cart />}></Route>
        
       </Route>
 

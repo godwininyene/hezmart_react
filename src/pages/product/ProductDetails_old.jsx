@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "../../lib/axios";
 import { useParams, Link } from "react-router-dom";
-import { FiShoppingCart, FiHeart, FiShare2 } from "react-icons/fi";
-import { ReviewsSection, renderRatingStars } from "./ReviewComponent";
-import { ProductTabs } from "./ProductTabs";
-import { useCart } from "../../components/contexts/CartContext.jsx";
-import { toast } from 'react-toastify';
+import { FiStar, FiShoppingCart, FiHeart, FiShare2 } from "react-icons/fi";
+import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 
 const ProductDetails = () => {
-    const { addToCart, cart } = useCart();
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [product, setProduct] = useState(null);
@@ -87,14 +83,13 @@ const ProductDetails = () => {
         });
     };
 
-    const handleAddToCart = async () => {
-        if (!product) return;
-        const result = await addToCart(product, quantity, selectedOptions);
-        if (result.success) {
-            toast.success(`${product.name} added to cart!`);
-        } else {
-            toast.error(result.error?.message || 'Failed to add to cart');
-        }
+    const handleAddToCart = () => {
+        // Implement add to cart logic
+        console.log("Added to cart:", {
+            productId: product.id,
+            quantity,
+            options: selectedOptions
+        });
     };
 
     const handleSubmitReview = (e) => {
@@ -116,6 +111,29 @@ const ProductDetails = () => {
             ...prev
         ]);
         setNewReview({ rating: 5, comment: '' });
+    };
+
+    const renderRatingStars = (rating) => {
+        const stars = [];
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        
+        for (let i = 1; i <= 5; i++) {
+            if(rating >= i){
+                stars.push(<FaStar key={i} className="text-primary-light" />);
+            }else{
+                stars.push(<FaRegStar key={i} className="text-primary-light" />);
+            }
+            // if (i <= fullStars) {
+            //     stars.push(<FaStar key={i} className="text-primary-light" />);
+            // } else if (i === fullStars + 1 && hasHalfStar) {
+            //     stars.push(<FaStarHalfAlt key={i} className="text-primary-light" />);
+            // } else {
+            //     stars.push(<FaRegStar key={i} className="text-primary-light" />);
+            // }
+        }
+        
+        return stars;
     };
 
     useEffect(() => {
@@ -174,17 +192,6 @@ const ProductDetails = () => {
             </div>
         );
     }
-
-    const reviewsSection = (
-        <ReviewsSection
-            product={product}
-            user={user}
-            reviews={reviews}
-            newReview={newReview}
-            setNewReview={setNewReview}
-            handleSubmitReview={handleSubmitReview}
-        />
-    );
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
@@ -246,6 +253,10 @@ const ProductDetails = () => {
                         )}
                     </div>
 
+                    {/* <div className="mb-6">
+                        <p className="text-gray-700">{product.description}</p>
+                    </div> */}
+
                     {/* Product Options */}
                     {product.options?.map(option => (
                         <div key={option.id} className="mb-4">
@@ -295,13 +306,7 @@ const ProductDetails = () => {
                                 onClick={handleAddToCart}
                                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md flex items-center justify-center gap-2"
                             >
-                                 {cart.loading ? (
-                                    'Adding...'
-                                ) : (
-                                    <>
-                                        <FiShoppingCart /> Add to Cart
-                                    </>
-                                )}
+                                <FiShoppingCart /> Add to Cart
                             </button>
                             <button className="p-3 border border-gray-300 rounded-md hover:bg-gray-50">
                                 <FiHeart className="text-gray-600" />
@@ -346,16 +351,184 @@ const ProductDetails = () => {
             </div>
 
             {/* Product Tabs */}
-            <ProductTabs 
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                product={product}
-                reviewsSection={reviewsSection}
-            />
+            <div className="mb-8">
+                <div className="border-b border-gray-200">
+                    <nav className="-mb-px flex space-x-8">
+                        <button
+                            onClick={() => setActiveTab('description')}
+                            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'description' 
+                                ? 'border-blue-500 text-blue-600' 
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                        >
+                            Description
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('specifications')}
+                            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'specifications' 
+                                ? 'border-blue-500 text-blue-600' 
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                        >
+                            Specifications
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('reviews')}
+                            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'reviews' 
+                                ? 'border-blue-500 text-blue-600' 
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                        >
+                            Reviews ({product.ratingsQuantity})
+                        </button>
+                    </nav>
+                </div>
+
+                <div className="py-6">
+                    {activeTab === 'description' && (
+                        <div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">Product Description</h3>
+                            <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
+                        </div>
+                    )}
+
+                    {activeTab === 'specifications' && (
+                        <div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">Specifications</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <h4 className="font-medium text-gray-900 mb-2">General</h4>
+                                    <ul className="space-y-2">
+                                        <li className="flex justify-between">
+                                            <span className="text-gray-500">Category</span>
+                                            <span className="text-gray-900">{product.category?.name}</span>
+                                        </li>
+                                        <li className="flex justify-between">
+                                            <span className="text-gray-500">Subcategory</span>
+                                            <span className="text-gray-900">{product.subCategory?.name}</span>
+                                        </li>
+                                        <li className="flex justify-between">
+                                            <span className="text-gray-500">Weight</span>
+                                            <span className="text-gray-900">{product.weight} kg</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className="font-medium text-gray-900 mb-2">Other</h4>
+                                    <ul className="space-y-2">
+                                        <li className="flex justify-between">
+                                            <span className="text-gray-500">Taxable</span>
+                                            <span className="text-gray-900">{product.taxable ? 'Yes' : 'No'}</span>
+                                        </li>
+                                        <li className="flex justify-between">
+                                            <span className="text-gray-500">Digital Product</span>
+                                            <span className="text-gray-900">{product.isDigital ? 'Yes' : 'No'}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'reviews' && (
+                        <div>
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                                <div>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-1">Customer Reviews</h3>
+                                    <div className="flex items-center">
+                                        <div className="flex mr-2">
+                                            {renderRatingStars(product.ratingsAverage)}
+                                        </div>
+                                        <span className="text-sm text-gray-500">
+                                            {product.ratingsAverage.toFixed(1)} out of 5 ({product.ratingsQuantity} reviews)
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Review Form */}
+                            {user && (
+                                <div className="bg-gray-50 p-6 rounded-lg mb-8">
+                                    <h4 className="text-lg font-medium text-gray-900 mb-4">Write a Review</h4>
+                                    <form onSubmit={handleSubmitReview}>
+                                        <div className="mb-4">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Rating
+                                            </label>
+                                            <div className="flex">
+                                                {[1, 2, 3, 4, 5].map(star => (
+                                                    <button
+                                                        key={star}
+                                                        type="button"
+                                                        onClick={() => setNewReview({...newReview, rating: star})}
+                                                        className="text-2xl mr-1"
+                                                    >
+                                                        {star <= newReview.rating ? (
+                                                            <FaStar className="text-primary-light" />
+                                                        ) : (
+                                                            <FaRegStar className="text-primary-light" />
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="mb-4">
+                                            <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+                                                Review
+                                            </label>
+                                            <textarea
+                                                id="comment"
+                                                rows="4"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                value={newReview.comment}
+                                                onChange={(e) => setNewReview({...newReview, comment: e.target.value})}
+                                                required
+                                            ></textarea>
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md"
+                                        >
+                                            Submit Review
+                                        </button>
+                                    </form>
+                                </div>
+                            )}
+
+                            {/* Reviews List */}
+                            <div className="space-y-6">
+                                {reviews.length > 0 ? (
+                                    reviews.map(review => (
+                                        <div key={review.id} className="border-b border-gray-200 pb-6 last:border-0">
+                                            <div className="flex items-start">
+                                                <img 
+                                                    src={review.user.avatar} 
+                                                    alt={review.user.name} 
+                                                    className="h-10 w-10 rounded-full mr-4"
+                                                />
+                                                <div>
+                                                    <div className="flex items-center mb-1">
+                                                        <h4 className="font-medium text-gray-900 mr-2">{review.user.name}</h4>
+                                                        <div className="flex">
+                                                            {renderRatingStars(review.rating)}
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-sm text-gray-500 mb-2">{review.date}</p>
+                                                    <p className="text-gray-700">{review.comment}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             {/* Similar Products */}
             <div className="mb-12">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Products</h2>
+                {/* You would implement similar products carousel here */}
                 <div className="bg-gray-100 p-12 rounded-lg text-center">
                     <p className="text-gray-500">Similar products based on {product.category?.name} &gt; {product.subCategory?.name} will appear here</p>
                 </div>

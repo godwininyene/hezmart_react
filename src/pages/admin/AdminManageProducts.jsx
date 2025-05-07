@@ -114,7 +114,6 @@ const AdminManageProducts = () => {
                 }
                 ]}
                 totalItems={pagination.totalItems}
-               
                 searchPlaceholder="Search products..."
             />
 

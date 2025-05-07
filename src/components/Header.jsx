@@ -2,7 +2,9 @@ import { Link } from "react-router-dom";
 import { logo_white, logo} from "../assets/images";
 import { LuShoppingCart } from "react-icons/lu";
 import SearchBar from "./SearchBar";
+import { useCart } from "./contexts/CartContext";
 const Header = ()=>{
+    const { cartCount } = useCart();
     return(
         <div>
             {/* Top Bar  */}
@@ -42,10 +44,12 @@ const Header = ()=>{
                       
                     </Link>
 
-                    <div className="bg-primary-light py-2 gap-x-1 font-medium text-white px-5 ml-4 flex items-center rounded shadow">
+                    
+
+                    <Link to='/cart' className="bg-primary-light py-2 gap-x-1 font-medium text-white px-5 ml-4 flex items-center rounded shadow">
                         <LuShoppingCart className="text-2xl" />
-                        <span>3</span>
-                    </div>
+                       {cartCount > 0 &&  <span>{cartCount}</span>}
+                    </Link>
                 </div>
             </nav>
         </div>
