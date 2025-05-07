@@ -8,13 +8,13 @@ const ProductDetails = () => {
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [product, setProduct] = useState(null);
-    const [selectedImage, setSelectedImage] = useState(0);
+    const [selectedImage, setSelectedImage] = useState();
     const [quantity, setQuantity] = useState(1);
     const [selectedOptions, setSelectedOptions] = useState({});
     const [activeTab, setActiveTab] = useState('description');
     const [reviews, setReviews] = useState([]);
     const [newReview, setNewReview] = useState({
-        rating: 5,
+        rating: 1,
         comment: ''
     });
 
@@ -55,7 +55,7 @@ const ProductDetails = () => {
                         name: "Jane Smith",
                         avatar: "https://randomuser.me/api/portraits/women/1.jpg"
                     },
-                    rating: 4,
+                    rating: 2,
                     comment: "Good quality but shipping took longer than expected.",
                     date: "2025-04-28"
                 }
@@ -119,13 +119,18 @@ const ProductDetails = () => {
         const hasHalfStar = rating % 1 >= 0.5;
         
         for (let i = 1; i <= 5; i++) {
-            if (i <= fullStars) {
-                stars.push(<FaStar key={i} className="text-yellow-400" />);
-            } else if (i === fullStars + 1 && hasHalfStar) {
-                stars.push(<FaStarHalfAlt key={i} className="text-yellow-400" />);
-            } else {
-                stars.push(<FaRegStar key={i} className="text-yellow-400" />);
+            if(rating >= i){
+                stars.push(<FaStar key={i} className="text-primary-light" />);
+            }else{
+                stars.push(<FaRegStar key={i} className="text-primary-light" />);
             }
+            // if (i <= fullStars) {
+            //     stars.push(<FaStar key={i} className="text-primary-light" />);
+            // } else if (i === fullStars + 1 && hasHalfStar) {
+            //     stars.push(<FaStarHalfAlt key={i} className="text-primary-light" />);
+            // } else {
+            //     stars.push(<FaRegStar key={i} className="text-primary-light" />);
+            // }
         }
         
         return stars;
@@ -456,9 +461,9 @@ const ProductDetails = () => {
                                                         className="text-2xl mr-1"
                                                     >
                                                         {star <= newReview.rating ? (
-                                                            <FaStar className="text-yellow-400" />
+                                                            <FaStar className="text-primary-light" />
                                                         ) : (
-                                                            <FaRegStar className="text-yellow-400" />
+                                                            <FaRegStar className="text-primary-light" />
                                                         )}
                                                     </button>
                                                 ))}
