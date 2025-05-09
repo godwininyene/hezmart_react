@@ -1,19 +1,22 @@
 import { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Button from "../../components/common/Button";
 import InputField from "../../components/common/InputField";
 import SelectField from "../../components/common/SelectField";
 import { toast } from 'react-toastify';
 import axios from "../../lib/axios";
 
-const AddProduct = () => {
+const EditProduct = () => {
   const [processing, setProcessing] = useState(false);
+  const [loadingProduct, setLoadingProduct] = useState(true);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState();
   const [hasMultipleOptions, setHasMultipleOptions] = useState(false);
-  const [isDigitalItem, setIsDigitalItem] = useState(true);
+  const [isDigitalItem, setIsDigitalItem] = useState(false);
   const [tags, setTags] = useState([]);
   const [newTag, setNewTag] = useState("");
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
 
   // Options state management
   const [options, setOptions] = useState([]);
@@ -48,6 +51,88 @@ const AddProduct = () => {
       setLoadingCategories(false);
     }
   };
+
+  // Fetch product data
+  const fetchProduct = async () => {
+    try {
+      setLoadingProduct(true);
+      const res = await axios.get(`api/v1/products/${id}`);
+      
+      if (res.data.status === 'success') {
+        setProduct(res.data.data.product);
+      }
+    } catch (error) {
+      toast.error("Failed to load product");
+      console.error("Error fetching product:", error);
+    } finally {
+      setLoadingProduct(false);
+    }
+  };
+
+  // Initialize form with product data
+  useEffect(() => {
+    if (product) {
+      // Set basic fields
+      setSelectedCategory(product.categoryId);
+      setSelectedSubcategory(product.subCategoryId);
+      setIsDigitalItem(product.isDigital || false);
+      setHasMultipleOptions(product.options?.length > 0);
+      
+       // Handle tags transformation
+        if (product.tags && product.tags.length > 0) {
+            const tagNames = product.tags.map(tag => tag.name);
+            setTags(tagNames);
+        }
+      
+      // Handle options transformation
+        if (product.options && product.options.length > 0) {
+            const transformedOptions = product.options.map(option => ({
+                id: option.id, // Preserve option ID for updates
+                name: option.name,
+                values: option.values.map(val => val.value), // Extract just the value strings
+                newValue: "" // For adding new values
+            }));
+            setOptions(transformedOptions);
+            setHasMultipleOptions(true);
+        }
+      
+      // Set image previews
+      if (product.coverImage) {
+        setCoverImagePreview(
+          product.coverImage.startsWith('http') 
+            ? product.coverImage 
+            : `${process.env.REACT_APP_API_URL}/${product.coverImage}`
+        );
+      }
+      
+      if (product.images) {
+        try {
+          const parsedImages = typeof product.images === 'string'
+            ? JSON.parse(product.images)
+            : product.images;
+          
+          const imagePreviews = Array.isArray(parsedImages) 
+            ? parsedImages.map(img => 
+                img.startsWith('http') ? img : `${process.env.REACT_APP_API_URL}/${img}`
+              )
+            : [];
+          setAdditionalImagesPreview(imagePreviews);
+        } catch (e) {
+          console.error("Error parsing images:", e);
+          setAdditionalImagesPreview([]);
+        }
+      }
+
+        // Find the category and set available subcategories
+        const productCategory = categories.find(cat => cat.id === product.categoryId);
+        if (productCategory) {
+            setAvailableSubcategories(productCategory.subcategories || []);
+        }
+
+        // Set the subcategory after subcategories are loaded
+        setSelectedSubcategory(product.subCategoryId);
+    }
+  }, [product]);
 
   // Handle image previews
   const handleCoverImageChange = (e) => {
@@ -107,6 +192,7 @@ const AddProduct = () => {
     if (category) {
       setSelectedCategory(categoryId);
       setAvailableSubcategories(category.subcategories || []);
+      // Reset subcategory when changing main category
       setSelectedSubcategory("");
     }
   };
@@ -171,32 +257,7 @@ const AddProduct = () => {
     setOptions(updatedOptions);
   };
 
-  // Reset form after successful submission
-  const resetForm = () => {
-    setTags([]);
-    setNewTag("");
-    setOptions([]);
-    setNewOptionName("");
-    setSelectedCategory("");
-    setSelectedSubcategory("");
-    setCoverImagePreview(null);
-    setAdditionalImagesPreview([]);
-    setHasMultipleOptions(false);
-    setIsDigitalItem(true);
-    
-    // Reset file inputs
-    if (coverImageRef.current) coverImageRef.current.value = '';
-    if (additionalImagesRef.current) additionalImagesRef.current.value = '';
-    
-    // Reset form fields
-    const form = document.querySelector('form');
-    if (form) form.reset();
-  };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
+  // Submit form
   const submit = async (e) => {
     e.preventDefault();
     setProcessing(true);
@@ -208,11 +269,12 @@ const AddProduct = () => {
       if (selectedSubcategory) {
         formData.append('subCategoryId', selectedSubcategory);
       }
+      formData.append('isDigital', isDigitalItem);
 
-      const response = await axios.post('api/v1/products', formData);
+      const response = await axios.patch(`api/v1/products/${id}`, formData);
       if (response.data.status === 'success') {
-        toast.success("Product added successfully");
-        resetForm();
+        toast.success("Product updated successfully");
+        fetchProduct(); // Refresh the product data
       }
     } catch (err) {
       if (err.response) {
@@ -221,9 +283,6 @@ const AddProduct = () => {
         }
         if (err.response.data.errors) {
           setErrors(err.response.data.errors);
-          if(err.response.data.errors.userId){
-            toast.error("Product must belong to a vendor.");
-          }
         }
       } else {
         toast.error("An error occurred. Please try again.");
@@ -233,11 +292,38 @@ const AddProduct = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+        await fetchCategories();
+        await fetchProduct();
+    };
+      fetchData();
+  }, [id]);
+
+  if (loadingProduct) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-dark"></div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-lg text-gray-600">Product not found</p>
+        <Link to="/manage/vendor/products" className="text-primary-dark mt-4 inline-block">
+          Back to products
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">Add New Product</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Edit Product</h1>
         <Link to="/manage/vendor/products" className="cursor-pointer">
           <button className="text-primary-dark font-medium cursor-pointer">Back</button>
         </Link>
@@ -261,12 +347,15 @@ const AddProduct = () => {
               placeholder="Summer T-Shirt"
               name="name"
               error={errors.name}
+              value={product.name}
             />
             <InputField
               label="Product Quantity"
               placeholder="e.g 20"
               name="stockQuantity"
               error={errors.stockQuantity}
+              value={product.stockQuantity}
+              type="number"
             />
             <InputField
               label="Product Description"
@@ -274,6 +363,7 @@ const AddProduct = () => {
               name="description"
               as="textarea"
               error={errors.description}
+              value={product.description}
             />
           </div>
         </div>
@@ -336,29 +426,28 @@ const AddProduct = () => {
                     ×
                   </button>
                 </div>
-              ) }
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <input 
-                    type="file" 
-                    id="cover-image" 
-                    className="hidden" 
-                    name="coverImage"
-                    accept="image/*"
-                    onChange={handleCoverImageChange}
-                    ref={coverImageRef}
-                  />
-                  <label
-                    htmlFor="cover-image"
-                    className="cursor-pointer text-primary-dark font-medium"
-                  >
-                    + Add File
-                  </label>
-                  <p className="text-gray-500 mt-2">or drag and drop files</p>
-                  {errors.coverImage && (
-                    <p className="mt-1 text-sm text-red-500">{errors.coverImage}</p>
-                  )}
-                </div>
-              
+              )}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                <input 
+                  type="file" 
+                  id="cover-image" 
+                  className="hidden" 
+                  name="coverImage"
+                  accept="image/*"
+                  onChange={handleCoverImageChange}
+                  ref={coverImageRef}
+                />
+                <label
+                  htmlFor="cover-image"
+                  className="cursor-pointer text-primary-dark font-medium"
+                >
+                  + Add File
+                </label>
+                <p className="text-gray-500 mt-2">or drag and drop files</p>
+                {errors.coverImage && (
+                  <p className="mt-1 text-sm text-red-500">{errors.coverImage}</p>
+                )}
+              </div>
             </div>
 
             {/* Additional Images */}
@@ -450,6 +539,7 @@ const AddProduct = () => {
               name="price"
               type="number"
               error={errors.price}
+              value={product.price}
             />
             <InputField
               label="Discount Price"
@@ -458,12 +548,14 @@ const AddProduct = () => {
               type="number"
               error={errors.discountPrice}
               isRequired={false}
+              value={product.discountPrice || ''}
             />
             <label className="flex items-center space-x-2">
               <input
                 type="checkbox"
-                name="has_tax"
+                name="taxable"
                 className="h-4 w-4 text-primary-dark rounded"
+                defaultChecked={product.taxable}
               />
               <span>Add tax for this product</span>
             </label>
@@ -479,6 +571,7 @@ const AddProduct = () => {
               name="seoTitle" 
               error={errors.seoTitle}
               isRequired={false}
+              value={product.seoTitle || ''}
             />
             <InputField 
               label="Description" 
@@ -486,6 +579,7 @@ const AddProduct = () => {
               as="textarea" 
               error={errors.seoDescription}
               isRequired={false}
+              value={product.seoDescription || ''}
             />
           </div>
         </div>
@@ -542,7 +636,7 @@ const AddProduct = () => {
                       <InputField
                         label={`Add ${option.name} Values`}
                         placeholder={`Enter ${option.name} value`}
-                        value={option.newValue}
+                        value={option.newValue || ''}
                         onChange={(e) => {
                           const updatedOptions = [...options];
                           updatedOptions[optionIndex].newValue = e.target.value;
@@ -588,17 +682,12 @@ const AddProduct = () => {
               type="number"
               error={errors.weight}
               isRequired={false}
-            />
-            <SelectField
-              label="Country"
-              name="country"
-              options={["Select Country", "USA", "UK", "Canada", "Australia"]}
-              error={errors.country}
+              value={product.weight || ''}
             />
             <label className="flex items-center space-x-2">
               <input
                 type="checkbox"
-                name="is_digital"
+                name="isDigital"
                 checked={isDigitalItem}
                 onChange={() => setIsDigitalItem(!isDigitalItem)}
                 className="h-4 w-4 text-primary-dark rounded"
@@ -610,15 +699,14 @@ const AddProduct = () => {
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-4">
-          <button
-            type="button"
+          <Link
+            to="/manage/vendor/products"
             className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium"
-            onClick={resetForm}
           >
             Cancel
-          </button>
+          </Link>
           <Button type="submit" disabled={processing}>
-            {processing ? "Saving..." : "Save"}
+            {processing ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </form>
@@ -626,4 +714,4 @@ const AddProduct = () => {
   );
 };
 
-export default AddProduct;
+export default EditProduct;

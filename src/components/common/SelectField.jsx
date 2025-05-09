@@ -6,7 +6,7 @@ const SelectField = ({
   options = [],
   isRequired = true,
   classNames = "",
-  defaultValue = "",
+  value,
   variant = "default",
   label,
   icon,
@@ -69,7 +69,7 @@ const SelectField = ({
       <div className="relative">
         <select
           name={name}
-          defaultValue={defaultValue}
+          value={value}
           onChange={onChange}
           className={`${selectClasses} ${defaultValue ? 'pt-5' : ''}`}
           required={isRequired}
@@ -100,7 +100,7 @@ const SelectField = ({
       <div className="relative">
         <select
           name={name}
-          defaultValue={defaultValue}
+          value={value}
           onChange={onChange}
           className={selectClasses}
           required={isRequired}

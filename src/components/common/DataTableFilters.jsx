@@ -32,7 +32,7 @@ const DataTableFilters = ({
         </form>
 
         {/* Dynamic Filters */}
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
           {filters.map((filter, index) => (
             <div key={index} className="flex-1">
               {filter.type === 'select' ? (
@@ -62,12 +62,12 @@ const DataTableFilters = ({
 
         {/* Results and Add Button */}
         <div className="flex items-center justify-end gap-4">
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-600 pt-3">
             Showing {totalItems} items
           </span>
           {addButtonLink && (
             <Link to={addButtonLink} className="w-full md:w-auto">
-              <Button className="flex items-center gap-2 w-full md:w-auto">
+              <Button className="flex items-center gap-2 w-full px-3">
                 <FiPlus /> {addButtonText}
               </Button>
             </Link>

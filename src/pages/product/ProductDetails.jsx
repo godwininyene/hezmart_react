@@ -39,7 +39,7 @@ const ProductDetails = () => {
                     initialOptions[option.name] = option.values[0].value;
                 });
             }
-            setSelectedOptions(initialOptions);
+            // setSelectedOptions(initialOptions);
             
             // Fetch reviews (mock data for now - replace with actual API call)
             const mockReviews = [
@@ -68,6 +68,7 @@ const ProductDetails = () => {
             
         } catch (error) {
             console.error("Error fetching product:", error);
+            toast.error("Failed to load product details");
         } finally {
             setLoading(false);
         }
@@ -89,6 +90,7 @@ const ProductDetails = () => {
 
     const handleAddToCart = async () => {
         if (!product) return;
+        
         const result = await addToCart(product, quantity, selectedOptions);
         if (result.success) {
             toast.success(`${product.name} added to cart!`);
@@ -118,6 +120,19 @@ const ProductDetails = () => {
         setNewReview({ rating: 5, comment: '' });
     };
 
+    const calculateDiscountPercentage = () => {
+        const discountPrice = parseFloat(product.discountPrice);
+        const actualPrice = parseFloat(product.price);
+        
+        if (!discountPrice || discountPrice >= actualPrice) return 0;
+        
+        return Math.round((1 - discountPrice / actualPrice) * 100);
+    };
+
+    const getDisplayPrice = () => {
+        return product.discountPrice || product.price;
+    };
+
     useEffect(() => {
         fetchProductDetail();
     }, [id]);
@@ -133,7 +148,7 @@ const ProductDetails = () => {
     if (!product) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-white py-12 px-4">
-                <div className="max-w-md w-full text-center p-8 bg-white rounded-xl shadow-lg border border-gray-100 transform transition-all duration-300 hover:shadow-xl">
+                <div className="max-w-md w-full text-center p-8 bg-white rounded-xl shadow-lg border border-gray-100">
                     <div className="flex justify-center mb-6">
                         <div className="h-16 w-16 rounded-full bg-rose-100 flex items-center justify-center">
                             <svg 
@@ -175,6 +190,9 @@ const ProductDetails = () => {
         );
     }
 
+    const discountPercentage = calculateDiscountPercentage();
+    const displayPrice = getDisplayPrice();
+
     const reviewsSection = (
         <ReviewsSection
             product={product}
@@ -187,7 +205,7 @@ const ProductDetails = () => {
     );
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Product Overview */}
             <div className="flex flex-col md:flex-row gap-8 mb-12">
                 {/* Product Images */}
@@ -227,23 +245,23 @@ const ProductDetails = () => {
                     </div>
 
                     <div className="mb-6">
-                        {product.discountPrice ? (
-                            <div className="flex items-center">
-                                <span className="text-3xl font-bold text-gray-900">
-                                    ${product.discountPrice}
-                                </span>
-                                <span className="ml-2 text-lg text-gray-500 line-through">
-                                    ${product.price}
-                                </span>
-                                <span className="ml-2 bg-red-100 text-red-800 text-xs font-semibold px-2 py-1 rounded">
-                                    {Math.round((1 - product.discountPrice / product.price) * 100)}% OFF
-                                </span>
-                            </div>
-                        ) : (
+                        <div className="flex items-center">
                             <span className="text-3xl font-bold text-gray-900">
-                                ${product.price}
+                                ₦{displayPrice.toLocaleString()}
                             </span>
-                        )}
+                           
+                            {discountPercentage > 0 && (
+                                
+                                <>
+                                    <span className="ml-2 text-lg text-gray-500 line-through">
+                                        ₦{product.price.toLocaleString()}
+                                    </span>
+                                    <span className="ml-2 bg-red-100 text-red-800 text-xs font-semibold px-2 py-1 rounded">
+                                        {discountPercentage}% OFF
+                                    </span>
+                                </>
+                            )}
+                        </div>
                     </div>
 
                     {/* Product Options */}
@@ -293,9 +311,10 @@ const ProductDetails = () => {
                         <div className="flex gap-3">
                             <button
                                 onClick={handleAddToCart}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md flex items-center justify-center gap-2"
+                                disabled={cart.loading}
+                                className="flex-1 bg-primary-light hover:bg-primary-dark text-white py-3 px-6 rounded-md flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                 {cart.loading ? (
+                                {cart.loading ? (
                                     'Adding...'
                                 ) : (
                                     <>

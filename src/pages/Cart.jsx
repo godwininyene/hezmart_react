@@ -54,7 +54,7 @@ const Cart = () => {
 
       {cart.loading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-dark mx-auto"></div>
         </div>
       ) : cart.error ? (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
@@ -222,7 +222,7 @@ const Cart = () => {
                       placeholder="Enter promo code"
                       className="flex-1 border border-gray-300 rounded-l-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-r-md text-sm font-medium hover:bg-blue-700">
+                    <button className="bg-primary-light text-white px-4 py-2 rounded-r-md text-sm font-medium hover:bg-primary-dark cursor-pointer">
                       Apply
                     </button>
                   </div>

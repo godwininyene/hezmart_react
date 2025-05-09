@@ -1,5 +1,5 @@
 import {createBrowserRouter, createRoutesFromElements, RouterProvider ,Route} from 'react-router-dom';
-import { CartProvider } from './components/contexts/CartContext';
+
 
 //Pages
 import Home from './pages/Home';
@@ -30,6 +30,7 @@ import PendingVerification from './pages/vendor/PendingVerification';
 import VendorDashboard from './pages/vendor/Dashboard'
 import VendorManageProducts from './pages/vendor/VendorManageProducts'
 import AddProduct from './pages/vendor/AddProduct';
+import EditProduct from './pages/vendor/EditProduct';
 
 //Product Pages;
 import ProductDetails from './pages/product/ProductDetails';
@@ -40,6 +41,7 @@ import NotFound from './pages/NotFound';
 import Error from './components/Error';
 import { requireAuth } from './utils/protect';
 import Cart from './pages/Cart';
+
 
 
 
@@ -65,6 +67,7 @@ function App() {
 
         {/* Product Routes */}
         <Route path='/product/:id' element={<ProductDetails />}></Route>
+
         <Route path='cart' element={<Cart />}></Route>
        
       </Route>
@@ -82,6 +85,8 @@ function App() {
           <Route path='dashboard' element={<VendorDashboard />} />
           <Route path='products' element={<VendorManageProducts />} />
           <Route path='add-product' element={<AddProduct />} ></Route>
+          <Route path='edit-product/:id' element={<EditProduct />}></Route>
+
         </Route>
        
 
